@@ -18,6 +18,7 @@ module ActiveRecord
         @connection = EventMachine::MySQL.new({
                                                 :host => @hostname,
                                                 :port => @port,
+                                                :user => @config[:username],
                                                 :database => @config[:database],
                                                 :password => @config[:password],
                                                 :socket   => @config[:socket]
