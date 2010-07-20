@@ -48,4 +48,10 @@ describe "ActiveRecord Driver for EM-MySQLPlus" do
       }
     }
   end
+
+  it "should fallback to blocking driver outside of EM loop" do
+      ActiveRecord::Base.establish_connection
+      r = Widget.find_by_sql("select sleep(0.01)")
+      r.size.should == 1
+  end
 end

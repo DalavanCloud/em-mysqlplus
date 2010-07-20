@@ -15,17 +15,21 @@ module ActiveRecord
       end
 
       def connect
-        @connection = EventMachine::MySQL.new({
-                                                :host => @hostname,
-                                                :port => @port,
-                                                :user => @config[:username],
-                                                :database => @config[:database],
-                                                :password => @config[:password],
-                                                :socket   => @config[:socket]
-        })
+        if EM.reactor_running?
+          @connection = EventMachine::MySQL.new({
+                                                  :host => @hostname,
+                                                  :port => @port,
+                                                  :user => @config[:username],
+                                                  :database => @config[:database],
+                                                  :password => @config[:password],
+                                                  :socket   => @config[:socket]
+          })
 
-        configure_connection
-        @connection
+          configure_connection
+          @connection
+        else
+          super
+        end
       end
 
     end
@@ -45,7 +49,18 @@ module ActiveRecord
         raise ArgumentError, "No database specified. Missing argument: database."
       end
 
-      ConnectionAdapters::EmMysqlAdapter.new(nil, logger, [host, port], [database, username, password], config)
+      if EM.reactor_running?
+        ConnectionAdapters::EmMysqlAdapter.new(nil, logger, [host, port], [database, username, password], config)
+      else
+        mysql = Mysql.init
+        if config[:sslca] || config[:sslkey]
+          mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher])
+        end
+
+        default_flags = Mysql.const_defined?(:CLIENT_MULTI_RESULTS) ? Mysql::CLIENT_MULTI_RESULTS : 0
+        options = [host, username, password, database, port, nil, default_flags]
+        ConnectionAdapters::MysqlAdapter.new(mysql, logger, options, config)
+      end
     end
   end
 end
