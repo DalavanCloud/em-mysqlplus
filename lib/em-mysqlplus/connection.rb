@@ -81,18 +81,22 @@ module EventMachine
       # reconnects to happen after all the unbinds have been processed
 
       @connected = false
+      EM.next_tick { reconnect }
+    end
 
-      EM.add_timer(0) do
-        @processing = false
-        @mysql = @conn.connect_socket(@opts)
-        @fd = @mysql.socket
+    def reconnect
+      @processing = false
+      @mysql = @conn.connect_socket(@opts)
+      @fd = @mysql.socket
 
-        @signature = EM.attach_fd(@mysql.socket, true)
-        EM.set_notify_readable @signature, true
-        EM.instance_variable_get('@conns')[@signature] = self
-        @connected = true
-        next_query
-      end
+      @signature = EM.attach_fd(@mysql.socket, true)
+      EM.set_notify_readable(@signature, true)
+      EM.instance_variable_get('@conns')[@signature] = self
+      @connected = true
+      next_query
+
+    rescue Mysql::Error => e
+      EM.add_timer(1) { reconnect }
     end
 
     def execute(sql, cblk = nil, eblk = nil, retries = 0)
@@ -124,6 +128,8 @@ module EventMachine
     end
 
     def close
+      return unless @connected
+
       detach
       @mysql.close
       @connected = false
