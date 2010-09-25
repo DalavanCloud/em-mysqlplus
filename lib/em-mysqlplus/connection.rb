@@ -37,6 +37,7 @@ module EventMachine
       if item = @current
         sql, cblk, eblk, retries = item
         result = @mysql.get_result
+        result = @mysql.affected_rows if result.nil?
 
         # kick off next query in the background
         # as we process the current results
