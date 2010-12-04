@@ -1,5 +1,7 @@
 # EM-MySQL (Plus)
 
+**Note**: [mysql2 gem](https://github.com/brianmario/mysql2) now ships with an Eventmachine driver - I recommend you switch/use that!
+
 EventMachine wrapper for the C-based MySQL / MySQLPlus Ruby gems, which provides
 callbacks, errbacks and all other niceties of EventMachine while keeping the API
 of the original C-based MySQL gem.
