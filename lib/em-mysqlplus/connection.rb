@@ -61,13 +61,12 @@ module EventMachine
         @queue << [sql, cblk, eblk, retries + 1]
         return close
 
-      elsif cb = (eblk || @opts[:on_error])
-        cb.call(e)
+      else
+        eblk.call(e)
+        @opts[:on_error].call(e) if @opts[:on_error]
+
         @processing = false
         next_query
-
-      else
-        raise e
       end
     end
 
