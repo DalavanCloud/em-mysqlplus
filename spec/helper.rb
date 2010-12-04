@@ -1,5 +1,5 @@
 require "rubygems"
 require "eventmachine"
-require "spec"
+require "rspec"
 
 require "lib/em-mysqlplus"
